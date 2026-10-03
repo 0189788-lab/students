@@ -398,3 +398,54 @@ td[contenteditable="true"]:focus {
   color: var(--muted);
   font-weight: 500;
 }
+
+/* PREDICT FORM */
+.predict-form {
+  margin-top: 24px;
+}
+
+.predict-actions {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 24px;
+}
+
+.predict-result {
+  margin-top: 32px;
+}
+
+.predict-result.hidden {
+  display: none;
+}
+
+.result-card {
+  background: var(--bg);
+  border-radius: 12px;
+  padding: 24px;
+  border: 1px solid var(--border);
+}
+
+.result-card h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  letter-spacing: -0.02em;
+}
+
+.prediction-text {
+  font-size: 1.5rem;
+  font-weight: 600;
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.prediction-text.pass {
+  background: rgba(52,199,89,0.1);
+  color: var(--pass);
+}
+
+.prediction-text.fail {
+  background: rgba(255,59,48,0.1);
+  color: var(--fail);
+}

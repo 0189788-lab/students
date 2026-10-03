@@ -14,6 +14,10 @@ function showView(name) {
     renderLunchChart()
   }
   if (name === 'table') renderTable(1) // Reiniciar a página 1 al cambiar a tabla
+  if (name === 'predict') {
+    document.getElementById('predict-result').classList.add('hidden')
+    document.getElementById('predict-form').reset()
+  }
 }
 
 // ─── TOAST ───────────────────────────────────────────────────────────────────
@@ -28,6 +32,61 @@ function showToast(msg) {
   t.classList.add('show')
   setTimeout(() => t.classList.remove('show'), 2000)
 }
+
+// ─── PREDICCIÓN ──────────────────────────────────────────────────────────────
+async function predictMathPass() {
+  const form = document.getElementById('predict-form')
+  const formData = new FormData(form)
+
+  const payload = {
+    gender: formData.get('gender'),
+    ethnicity: formData.get('ethnicity'),
+    parental_education: formData.get('parental_education'),
+    lunch: formData.get('lunch'),
+    test_prep: formData.get('test_prep'),
+    reading_score: Number(formData.get('reading_score')),
+    writing_score: Number(formData.get('writing_score'))
+  }
+
+  const resultDiv = document.getElementById('predict-result')
+  const predictionText = document.getElementById('prediction-text')
+
+  resultDiv.classList.remove('hidden')
+  predictionText.textContent = 'Analizando...'
+  predictionText.className = 'prediction-text'
+
+  try {
+    const response = await fetch(`${CONFIG.ML_API_URL}/predict`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    })
+
+    if (!response.ok) {
+      throw new Error('Error en la API de predicción')
+    }
+
+    const result = await response.text()
+
+    predictionText.textContent = result === 'pasa' ? '¡El estudiante PASA matemáticas!' : 'El estudiante NO PASA matemáticas'
+    predictionText.classList.add(result === 'pasa' ? 'pass' : 'fail')
+
+    showToast('Predicción completada ✓')
+  } catch (error) {
+    console.error('Error en predicción:', error)
+    predictionText.textContent = 'Error al conectar con la API de ML. Asegúrate de que el servidor esté corriendo en ' + CONFIG.ML_API_URL
+    predictionText.classList.add('fail')
+    showToast('Error en la predicción')
+  }
+}
+
+// Manejar el envío del formulario de predicción
+document.getElementById('predict-form').addEventListener('submit', (e) => {
+  e.preventDefault()
+  predictMathPass()
+})
 
 // ─── GRÁFICA ─────────────────────────────────────────────────────────────────
 // Promedio de math/reading/writing agrupado por parental_education
