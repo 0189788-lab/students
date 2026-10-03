@@ -9,7 +9,10 @@ function showView(name) {
   document.getElementById(`view-${name}`).classList.add('active')
   event.target.classList.add('active')
 
-  if (name === 'chart') renderChart()
+  if (name === 'chart') {
+    renderChart()
+    renderLunchChart()
+  }
   if (name === 'table') renderTable(1) // Reiniciar a página 1 al cambiar a tabla
 }
 
@@ -54,6 +57,80 @@ async function renderChart() {
   if (window._chart) window._chart.destroy()
 
   window._chart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels.map(l => l.charAt(0).toUpperCase() + l.slice(1)),
+      datasets: [
+        {
+          label: 'Matemáticas',
+          data: labels.map(l => avg(groups[l].math)),
+          backgroundColor: 'rgba(0,113,227,0.8)',
+          borderRadius: 8,
+        },
+        {
+          label: 'Lectura',
+          data: labels.map(l => avg(groups[l].reading)),
+          backgroundColor: 'rgba(52,199,89,0.8)',
+          borderRadius: 8,
+        },
+        {
+          label: 'Escritura',
+          data: labels.map(l => avg(groups[l].writing)),
+          backgroundColor: 'rgba(255,159,10,0.8)',
+          borderRadius: 8,
+        },
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { 
+          labels: { 
+            color: '#1d1d1f',
+            font: { family: '-apple-system, BlinkMacSystemFont, sans-serif' }
+          } 
+        },
+      },
+      scales: {
+        x: { 
+          ticks: { color: '#86868b', font: { family: '-apple-system, BlinkMacSystemFont, sans-serif' } }, 
+          grid: { color: '#e5e5ea' } 
+        },
+        y: {
+          ticks: { color: '#86868b', font: { family: '-apple-system, BlinkMacSystemFont, sans-serif' } },
+          grid: { color: '#e5e5ea' },
+          min: 50, max: 80,
+          title: { display: true, text: 'Promedio', color: '#86868b', font: { family: '-apple-system, BlinkMacSystemFont, sans-serif' } }
+        }
+      }
+    }
+  })
+}
+
+// ─── GRÁFICA LUNCH VS PROMEDIO ─────────────────────────────────────────────────
+async function renderLunchChart() {
+  const { data, error } = await db.from('students').select('lunch, math_score, reading_score, writing_score')
+  if (error) { console.error(error); return }
+
+  // Agrupar manualmente por lunch
+  const groups = {}
+  data.forEach(r => {
+    const key = r.lunch
+    if (!groups[key]) groups[key] = { math: [], reading: [], writing: [] }
+    groups[key].math.push(r.math_score)
+    groups[key].reading.push(r.reading_score)
+    groups[key].writing.push(r.writing_score)
+  })
+
+  const avg = arr => Math.round(arr.reduce((a, b) => a + b, 0) / arr.length)
+
+  const labels = Object.keys(groups)
+  const ctx = document.getElementById('lunchChart').getContext('2d')
+
+  // Destruir chart previo si existe
+  if (window._lunchChart) window._lunchChart.destroy()
+
+  window._lunchChart = new Chart(ctx, {
     type: 'bar',
     data: {
       labels: labels.map(l => l.charAt(0).toUpperCase() + l.slice(1)),
